@@ -41,10 +41,16 @@ struct RGBQuad {
 
 int main() {
 	string fname;
+	cout << "Source image name: ";
 	getline(cin, fname);
-	fstream bmp(fname + ".bmp", ios::in | ios::out | ios::binary);
+	fstream bmp(fname + ".bmp", ios::in | ios::binary);
 	bmpFH fileHeader;
 	bmpIH infoHeader;
+
+	string negativename;
+	cout << "Negative image name: ";
+	getline(cin, negativename);
+	fstream negbmp(negativename + ".bmp", ios::out | ios::binary);
 
 	if (!bmp.is_open()) {
 		cout << "Can't open file" << endl;
@@ -96,7 +102,11 @@ int main() {
 		bmp.seekg(ceil(infoHeader.biWidth / 4.0f) * 4 - infoHeader.biWidth, ios::cur);
 	}
 
-	bmp.seekp(fileHeader.bfOffBits, ios::beg);
+	bmp.seekg(ios::beg);
+	negbmp << bmp.rdbuf();
+	bmp.close();
+
+	negbmp.seekp(fileHeader.bfOffBits, ios::beg);
 
 	for (int y = infoHeader.biHeight - 1; y != -1; --y) {
 		for (int x = 0; x != infoHeader.biWidth; ++x) {
@@ -109,24 +119,24 @@ int main() {
 			switch (infoHeader.biBitCount / 8)
 			{
 			case 1:
-				bmp.write((char*)&pixels[y][x].Alpha, 1);
+				negbmp.write((char*)&pixels[y][x].Alpha, 1);
 				break;
 			case 3:
-				bmp.write((char*)&pixels[y][x].Blue, 1);
-				bmp.write((char*)&pixels[y][x].Green, 1);
-				bmp.write((char*)&pixels[y][x].Red, 1);
+				negbmp.write((char*)&pixels[y][x].Blue, 1);
+				negbmp.write((char*)&pixels[y][x].Green, 1);
+				negbmp.write((char*)&pixels[y][x].Red, 1);
 				break;
 			case 4:
-				bmp.write((char*)&pixels[y][x].Blue, 1);
-				bmp.write((char*)&pixels[y][x].Green, 1);
-				bmp.write((char*)&pixels[y][x].Red, 1);
-				bmp.write((char*)&pixels[y][x].Alpha, 1);
+				negbmp.write((char*)&pixels[y][x].Blue, 1);
+				negbmp.write((char*)&pixels[y][x].Green, 1);
+				negbmp.write((char*)&pixels[y][x].Red, 1);
+				negbmp.write((char*)&pixels[y][x].Alpha, 1);
 				break;
 			default:
 				break;
 			}
 		}
-		bmp.seekg(ceil(infoHeader.biWidth / 4.0f) * 4 - infoHeader.biWidth, ios::cur);
+		negbmp.seekp(ceil(infoHeader.biWidth / 4.0f) * 4 - infoHeader.biWidth, ios::cur);
 	}
-	bmp.close();
+	negbmp.close();
 }
